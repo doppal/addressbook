@@ -8,27 +8,28 @@ terraform {
 }
 provider "aws" {
   # Configuration options
-    region = "us-east-2"
+    region = "ap-south-1"
 }
 # create a vpc
 resource "aws_vpc" "ownvpc" {
   #cidr_block = "10.0.0.0/16"
   cidr_block = var.vpc_cidr_block
-  tags = {
+  tags={
     Name="${var.env}-vpc"
   }
 }
-module "myserver-subnet" {
-  source = "./modules/subnet"
-  vpc_id = aws_vpc.ownvpc.id
+module "myserver-subnet"{
+  source ="./modules/subnet"
+  vpc_id =aws_vpc.ownvpc.id
   subnet_cidr_block = var.subnet_cidr_block
   env = var.env
   az = var.az
 }
-module "myserver-instance" {
-  source = "./modules/webserver"
-  vpc_id = aws_vpc.ownvpc.id
-  subnet_id = module.myserver-subnet.subnet.id
-  env = var.env
-  instance_type = var.instance_type
+
+module "myserver-instance"{
+    source ="./modules/webserver"
+    vpc_id =aws_vpc.ownvpc.id
+    subnet_id = module.myserver-subnet.subnet.id
+    env = var.env
+    instance_type = var.instance_type
 }
