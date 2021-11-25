@@ -4,13 +4,15 @@ pipeline{
         jdk 'myjava'
         maven 'mymaven'
     }
+    environment{
+        APP_NAME='java-mvn-app'
+    }
     parameters{
         choice(name:'VERSION',choices:['1.1.0','1.2.0','1.3.0'],description:'version of the code')
         booleanParam(name: 'executeTests',defaultValue: true,description:'tc validity')
     }
     stages{
-        stage("COMPILE"){
-          
+        stage("COMPILE"){          
             steps{
                 script{
                     echo "Compiling the code"
@@ -18,8 +20,7 @@ pipeline{
                 }
             }
         }
-        stage("UNITTEST"){
-           
+        stage("UNITTEST"){           
             when{
                 expression{
                     params.executeTests == true
@@ -38,22 +39,20 @@ pipeline{
             }
         }
          stage("PACKAGE"){
-           
-           
-            steps{
+                     steps{
                 script{
                     echo "Packaging the code"
                     sh 'mvn package'
                 }
             }
         }
-         stage("BUILD THE DOCKER IMAGE"){
+         stage("BUILD THE DOCKER IMAGE"){       
             steps{
                 script{
                     echo "BUILDING THE DOCKER IMAGE"
-                    echo "Deploying version ${params.VERSION}"
+                   sh 'sudo systemctl start docker'
                     withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                        sh 'sudo systemctl start docker'
+                        
                         sh 'sudo docker build -t doppal/myownimage:$BUILD_NUMBER .'
                         sh 'sudo docker login -u $USER -p $PASS'
                         sh 'sudo docker push doppal/myownimage:$BUILD_NUMBER'
@@ -63,21 +62,21 @@ pipeline{
          }
          stage("Provision ec2-server with TF"){
              environment{
-                 AWS_ACCESS_KEY_ID = credentials("jenkins_aws_access_key_id")
-                 AWS_SECRET_ACCESS_KEY_ID = credentials("jenkins_aws_secret_access_key")
+                 AWS_ACCESS_KEY_ID =credentials("jenkins_aws_access_key_id")
+                 AWS_SECRET_ACCESS_KEY =credentials("jenkins_aws_secret_access_key")
              }
              steps{
                  script{
                      dir('terraform'){
-                         sh 'terraform init'
-                         sh 'terraform apply --auto-approve'
-                         EC2_PUBLIC_IP = sh(
-                             "terraform output ec2-ip",
-                             returnStdout: true
-                         ).trim()
-                     }
-                 }
-             }
+                      sh "terraform init"
+                      sh "terraform apply --auto-approve"
+                       EC2_PUBLIC_IP = sh(
+                     script: "terraform output ec2-ip",
+                     returnStdout: true
+                   ).trim()
+                }
+          }
+        }   
          }
         stage("DEPLOYONec2"){
             steps{
@@ -85,16 +84,16 @@ pipeline{
                     sleep(time: 90, unit: "SECONDS")
                     echo "ec2-instance created"
                     echo "${EC2_PUBLIC_IP}"
-                    echo "Deploying on an ec2-instance created by TF"
+                    echo "deploying on an ec2-instance created by TF"
                     echo "Deploying version ${params.VERSION}"
-                    sshagent(['deploy-server-key']) {
-                        withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                        sh "ssh  -o StrictHostKeyChecking=no ec2-user@${EC2_PUBLIC_IP} 'sudo sudo docker login -u $USER -p $PASS'"
-                        sh "ssh  -o StrictHostKeyChecking=no ec2-user@${EC2_PUBLIC_IP} 'sudo docker run -itd -P doppal/myownimage:$BUILD_NUMBER'"
+                   sshagent(['deploy-server-key']) {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@${EC2_PUBLIC_IP} 'sudo docker login -u $USER -p $PASS'"
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@${EC2_PUBLIC_IP} 'sudo docker run -itd -P doppal/myownimage:$BUILD_NUMBER'"
 }
                 }
             }
     }
 }
-    }
+}
 }
