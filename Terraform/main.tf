@@ -8,7 +8,7 @@ terraform {
 }
 provider "aws" {
   # Configuration options
-    region = "ap-south-1"
+    region = "us-east-2"
 }
 # create a vpc
 resource "aws_vpc" "ownvpc" {
