@@ -71,7 +71,7 @@ pipeline{
                     sshagent(['deploy-server-key']) {
                         withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                         sh "ssh  -o StrictHostKeyChecking=no ec2-user@3.133.146.157 'sudo amazon-linux-extras install docker -y'"
-                        sh "ssh  -o StrictHostKeyChecking=no ec2-user@3.133.146.157 'sudo systemctl start docker -y'"
+                        sh "ssh  -o StrictHostKeyChecking=no ec2-user@3.133.146.157 'sudo systemctl start docker'"
                         sh "ssh  -o StrictHostKeyChecking=no ec2-user@3.133.146.157'sudo sudo docker login -u $USER -p $PASS'"
                         sh "ssh  -o StrictHostKeyChecking=no ec2-user@3.133.146.157 'sudo docker run -itd -P doppal/myownimage:$BUILD_NUMBER'"
 }
