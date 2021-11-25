@@ -55,20 +55,25 @@ pipeline{
                     echo "BUILDING THE DOCKER IMAGE"
                     echo "Deploying version ${params.VERSION}"
                     withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                        sh 'sudo docker build -t devopstrainer/java-mvn-privaterepo:$BUILD_NUMBER .'
+                        sh 'sudo docker build -t doppal/myownimage:$BUILD_NUMBER .'
                         sh 'sudo sudo docker login -u $USER -p $PASS'
-                        sh 'sudo docker push devopstrainer/java-mvn-privaterepo:$BUILD_NUMBER'
+                        sh 'sudo docker push doppal/myownimage:$BUILD_NUMBER'
                 }
             }
         }
          }
-        stage("DEPLOY"){
-            
-            
+        stage("DEPLOYONec2"){
             steps{
                 script{
                     echo "Deploying the app"
                     echo "Deploying version ${params.VERSION}"
+                    sshagent(['deploy-server-key']) {
+                        withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                        sh "ssh  -o StrictHostKeyChecking=no ec2-user@3.133.146.157 'sudo amazon-linux-extras install docker -y'"
+                        sh "ssh  -o StrictHostKeyChecking=no ec2-user@3.133.146.157 'sudo systemctl start docker -y'"
+                        sh 'sudo sudo docker login -u $USER -p $PASS'
+                        sh "ssh  -o StrictHostKeyChecking=no ec2-user@3.133.146.157 'sudo docker run -itd -P doppal/myownimage:$BUILD_NUMBER'"
+}
                 }
             }
     }
