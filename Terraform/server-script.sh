@@ -1,5 +1,4 @@
-  #!/bin/bash
-  sudo yum install -y && sudo yum install -y docker
-  sudo systemctl start docker
-  sudo systemctl enable docker
-  sudo usermod -aG docker ec2-usermod
+    #!/bin/bash
+  sudo yum install httpd -y
+  sudo systemctl start httpd
+  sudo systemctl enable httpd
