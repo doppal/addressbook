@@ -55,6 +55,7 @@ pipeline{
                     echo "BUILDING THE DOCKER IMAGE"
                     echo "Deploying version ${params.VERSION}"
                     withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                        sh 'sudo systemctl start docker -y'
                         sh 'sudo docker build -t doppal/myownimage:$BUILD_NUMBER .'
                         sh 'sudo docker login -u $USER -p $PASS'
                         sh 'sudo docker push doppal/myownimage:$BUILD_NUMBER'
