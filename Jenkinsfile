@@ -5,7 +5,7 @@ pipeline{
         maven 'mymaven'
     }
     environment{
-        ANSIBLE_SERVER="ec2-user@172.31.6.99"
+        ANSIBLE_SERVER="ec2-user@172.31.7.163"
         APP_NAME='java-mvn-app'
         AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
         AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_secret_access_key')
