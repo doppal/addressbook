@@ -7,6 +7,9 @@ pipeline{
     environment{
         ANSIBLE_SERVER="user1@172.31.7.163"
         APP_NAME='java-mvn-app'
+        DOCKER_PASSWORD = credentials('DOCKER_PASSWORD')
+        AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
+        AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_secret_access_key')
     }
     parameters{
         choice(name:'VERSION',choices:['1.1.0','1.2.0','1.3.0'],description:'version of the code')
@@ -68,12 +71,26 @@ pipeline{
                      sshagent(['deploy-server-key']) {
                        sh "scp -o StrictHostKeyChecking=no ansible/* ${ANSIBLE_SERVER}:/home/user1"
                        sh "ssh ${ANSIBLE_SERVER} rm -f /home/user1/.ssh/id_rsa"
+                       sh "rm -f /home/user1/.ssh/id_rsa"
                        withCredentials([sshUserPrivateKey(credentialsId: 'deploy-server-key',keyFileVariable: 'keyfile',usernameVariable: 'user')]){
                       sh 'scp $keyfile $ANSIBLE_SERVER:/home/user1/.ssh/id_rsa'
                     }
                  }
              }
          }
+           stage("configure/executing ansible playbook"){
+                 steps{
+                     script{
+                         echo "executing ansible server"
+                         sshagent(['deploy-server-key']) {
+                           sh "scp -o StrictHostKeyChecking=no ./configure-ansible.sh ${ANSIBLE_SERVER}:/home/user1"
+                           
+                           sh "ssh ${ANSIBLE_SERVER} bash /home/user1/configure-ansible.sh"
+                         }
+                     }
+                 }
+  }
 }
 }
 }
+
