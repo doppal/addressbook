@@ -5,7 +5,7 @@ pipeline{
         maven 'mymaven'
     }
     environment{
-        ANSIBLE_SERVER="ec2-user@172.31.7.163"
+        ANSIBLE_SERVER="user1@172.31.7.163"
         APP_NAME='java-mvn-app'
     }
     parameters{
