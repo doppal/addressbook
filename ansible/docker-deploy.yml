@@ -1,0 +1,25 @@
+---
+- hosts: webservers
+  become: true
+  become_user: root
+  tasks:
+  - name: Install docker
+    yum: name=docker state=present
+  - name: start docker
+    service: name=docker state=started
+  - name: Install docker-compose
+    get_url:
+      url: https://github.com/docker/compose/releases/download/1.21.0/docker-compose-Linux-x86_64
+      dest: /usr/local/bin/docker-compose
+      mode: +x
+  - name: Add ec2-user to docker group
+    user: 
+      name: ec2-user
+      groups: docker
+      append: yes
+  - name: Reconnect to server session
+    meta: reset_connection
+  - name: Test docker
+    docker_image:
+      name: nginx
+      source: pull
