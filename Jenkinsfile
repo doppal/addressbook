@@ -5,7 +5,7 @@ pipeline{
         maven 'mymaven'
     }
     environment{
-        ANSIBLE_SERVER="user1@172.31.7.163"
+        ANSIBLE_SERVER="user1@172.31.6.99"
         APP_NAME='java-mvn-app'
         DOCKER_PASSWORD = credentials('DOCKER_PASSWORD')
         AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
@@ -57,9 +57,9 @@ pipeline{
                    sh 'sudo systemctl start docker'
                     withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                         
-                        sh 'sudo docker build -t doppal/myownimage:$BUILD_NUMBER .'
+                        sh 'sudo docker build -t devopstrainer/java-mvn-privaterepos:$BUILD_NUMBER .'
                         sh 'sudo docker login -u $USER -p $PASS'
-                        sh 'sudo docker push doppal/myownimage:$BUILD_NUMBER'
+                        sh 'sudo docker push devopstrainer/java-mvn-privaterepos:$BUILD_NUMBER'
                 }
             }
         }
@@ -71,14 +71,14 @@ pipeline{
                      sshagent(['deploy-server-key']) {
                        sh "scp -o StrictHostKeyChecking=no ansible/* ${ANSIBLE_SERVER}:/home/user1"
                        sh "ssh ${ANSIBLE_SERVER} rm -f /home/user1/.ssh/id_rsa"
-                       sh "rm -f /home/user1/.ssh/id_rsa"
-                       withCredentials([sshUserPrivateKey(credentialsId: 'deploy-server-key',keyFileVariable: 'keyfile',usernameVariable: 'user')]){
+                       withCredentials([sshUserPrivateKey(credentialsId: 'ansible-target-key',keyFileVariable: 'keyfile',usernameVariable: 'user')]){
                       sh 'scp $keyfile $ANSIBLE_SERVER:/home/user1/.ssh/id_rsa'
                     }
                  }
              }
          }
-           stage("configure/executing ansible playbook"){
+}
+  stage("configure/executing ansible playbook"){
                  steps{
                      script{
                          echo "executing ansible server"
@@ -92,5 +92,3 @@ pipeline{
   }
 }
 }
-}
-
