@@ -57,9 +57,9 @@ pipeline{
                    sh 'sudo systemctl start docker'
                     withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                         
-                        sh 'sudo docker build -t devopstrainer/java-mvn-privaterepos:$BUILD_NUMBER .'
+                        sh 'sudo docker build -t doppal/myprivate-repo:$BUILD_NUMBER .'
                         sh 'sudo docker login -u $USER -p $PASS'
-                        sh 'sudo docker push devopstrainer/java-mvn-privaterepos:$BUILD_NUMBER'
+                        sh 'sudo docker push doppal/myprivate-repo:$BUILD_NUMBER'
                 }
             }
         }
