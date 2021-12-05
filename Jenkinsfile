@@ -5,7 +5,7 @@ pipeline{
         maven 'mymaven'
     }
     environment{
-        ANSIBLE_SERVER="ec2-user@172.31.7.163"
+        ANSIBLE_SERVER="user1@172.31.7.163"
         APP_NAME='java-mvn-app'
     }
     parameters{
@@ -66,10 +66,10 @@ pipeline{
                  script{
                      echo "copying ansible files to ACM"
                      sshagent(['deploy-server-key']) {
-                       sh "scp -o StrictHostKeyChecking=no ansible/* ${ANSIBLE_SERVER}:/home/ec2-user"
-                       sh "ssh ${ANSIBLE_SERVER} rm -f /home/ec2-user/.ssh/id_rsa"
+                       sh "scp -o StrictHostKeyChecking=no ansible/* ${ANSIBLE_SERVER}:/home/user1"
+                       sh "ssh ${ANSIBLE_SERVER} rm -f /home/user1/.ssh/id_rsa"
                        withCredentials([sshUserPrivateKey(credentialsId: 'deploy-server-key',keyFileVariable: 'keyfile',usernameVariable: 'user')]){
-                      sh 'scp $keyfile $ANSIBLE_SERVER:/home/ec2-user/.ssh/id_rsa'
+                      sh 'scp $keyfile $ANSIBLE_SERVER:/home/user1/.ssh/id_rsa'
                     }
                  }
              }
